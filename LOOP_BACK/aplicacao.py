@@ -22,14 +22,14 @@ import numpy as np
 #use uma das 3 opcoes para atribuir à variável a porta usada
 #serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
 #serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
-serialName = "COM6"                  # Windows(variacao de)
+serialName = "COM3"                  # Windows(variacao de)
 
 
 def main():
     try:
         #declaramos um objeto do tipo enlace com o nome "com". Essa é a camada inferior à aplicação. Observe que um parametro
         #para declarar esse objeto é o nome da porta.
-        com1 = enlace('COM6')
+        com1 = enlace('COM3')
         
     
         # Ativa comunicacao. Inicia os threads e a comunicação seiral 
@@ -54,7 +54,7 @@ def main():
           
           
   
-        txBuffer = #dados
+        #txBuffer = #dados
         com1.sendData(np.asarray(txBuffer))
        
         # A camada enlace possui uma camada inferior, TX possui um método para conhecermos o status da transmissão
