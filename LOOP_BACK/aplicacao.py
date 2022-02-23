@@ -29,9 +29,10 @@ def main():
     try:
         #declaramos um objeto do tipo enlace com o nome "com". Essa é a camada inferior à aplicação. Observe que um parametro
         #para declarar esse objeto é o nome da porta.
+        inicio = time.time()
         com1 = enlace('COM3')
-        imageR = "img/nubank.png"
-        imageW = "img/nubankCopia.png"
+        imageR = "LOOP_BACK/img/nubank.png"
+        imageW = "LOOP_BACK/img/nubankCopia.png"
     
         # Ativa comunicacao. Inicia os threads e a comunicação seiral 
         com1.enable()
@@ -74,13 +75,16 @@ def main():
         print("recebeu {}" .format(rxBuffer))
         
         f = open(imageW, 'wb')
-        f.write(rxBuffer)
-        # fechar o arquivo de imagem 
+        f.write(rxBuffer) 
         f.close()
     
+        final  = time.time()
+        variacao = final - inicio
+
         # Encerra comunicação
         print("-------------------------")
         print("Comunicação encerrada")
+        print(f'Tempo: {variacao}')
         print("-------------------------")
         com1.disable()
         
