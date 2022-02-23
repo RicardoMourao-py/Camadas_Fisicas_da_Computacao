@@ -30,7 +30,8 @@ def main():
         #declaramos um objeto do tipo enlace com o nome "com". Essa é a camada inferior à aplicação. Observe que um parametro
         #para declarar esse objeto é o nome da porta.
         com1 = enlace('COM3')
-        
+        imageR = "img/nubank.png"
+        imageW = "img/nubankCopia.png"
     
         # Ativa comunicacao. Inicia os threads e a comunicação seiral 
         com1.enable()
@@ -41,7 +42,7 @@ def main():
         #nome de txBuffer. Esla sempre irá armazenar os dados a serem enviados.
         
         #txBuffer = imagem em bytes!
-    
+        txBuffer = open(imageR, 'rb').read()
 
     
         #faça aqui uma conferência do tamanho do seu txBuffer, ou seja, quantos bytes serão enviados.
@@ -71,7 +72,11 @@ def main():
         txLen = len(txBuffer)
         rxBuffer, nRx = com1.getData(txLen)
         print("recebeu {}" .format(rxBuffer))
-            
+        
+        f = open(imageW, 'wb')
+        f.write(rxBuffer)
+        # fechar o arquivo de imagem 
+        f.close()
     
         # Encerra comunicação
         print("-------------------------")
