@@ -29,7 +29,7 @@ def main():
     try:
         #declaramos um objeto do tipo enlace com o nome "com". Essa é a camada inferior à aplicação. Observe que um parametro
         #para declarar esse objeto é o nome da porta.
-        inicio = time.time()
+        inicio_total = time.time()
         com1 = enlace('COM3')
         imageR = "LOOP_BACK/img/nubank.png"
         imageW = "LOOP_BACK/img/nubankCopia.png"
@@ -57,8 +57,9 @@ def main():
           
   
         #txBuffer = #dados
+        inicio_transmissao = time.time()
         com1.sendData(np.asarray(txBuffer))
-       
+        final_transmissao = time.time()
         # A camada enlace possui uma camada inferior, TX possui um método para conhecermos o status da transmissão
         # Tente entender como esse método funciona e o que ele retorna
         txSize = com1.tx.getStatus()
@@ -71,20 +72,27 @@ def main():
       
         #acesso aos bytes recebidos
         txLen = len(txBuffer)
+        inicio_recebimento = time.time()
         rxBuffer, nRx = com1.getData(txLen)
+        final_recebimento = time.time()
         print("recebeu {}" .format(rxBuffer))
         
         f = open(imageW, 'wb')
         f.write(rxBuffer) 
         f.close()
     
-        final  = time.time()
-        variacao = final - inicio
+        final_total = time.time()
+        
+        variacao_final = final_total - inicio_total
+        variacao_transmissao = final_transmissao - inicio_transmissao
+        variacao_recebimento = final_recebimento - inicio_recebimento
 
         # Encerra comunicação
         print("-------------------------")
         print("Comunicação encerrada")
-        print(f'Tempo: {variacao}')
+        print(f'Tempo Total: {variacao_final}')
+        print(f'Tempo de Transmissão: {variacao_transmissao}')
+        print(f'Tempo de Recebimento: {variacao_recebimento}')
         print("-------------------------")
         com1.disable()
         
