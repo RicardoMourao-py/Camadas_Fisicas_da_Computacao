@@ -26,6 +26,7 @@ def main():
         com1 = enlace('COM3')
         # Ativa comunicacao. Inicia os threads e a comunicação seiral 
         com1.enable()
+        com1.fisica.flush()
 
         lista = [b'\xF0', b'\xFF', b'\x00\xFF', b'\xFF\x00', b'\x00', b'\x0F']
         quant_comandos = random.randint(10,30)
@@ -38,15 +39,17 @@ def main():
         for i in lista_comandos:
             msg_txBuffer.append(i+b'\xee')
         txBuffer = (b''.join(msg_txBuffer))
-        
+        txLen = len(txBuffer)
+        txBuffer_bytes = txLen.to_bytes(2, byteorder = 'big')
+
         inicio_transmissao = time.time()
-        com1.sendData(np.asarray(txBuffer))
+        com1.sendData(np.asarray(txBuffer_bytes))
         final_transmissao = time.time()
         
-        txLen = len(txBuffer)
         inicio_recebimento = time.time()
         rxBuffer, nRx = com1.getData(txLen)
         final_recebimento = time.time()
+
         print("recebeu {}" .format(rxBuffer))
         
         # f = open(imageW, 'wb')
