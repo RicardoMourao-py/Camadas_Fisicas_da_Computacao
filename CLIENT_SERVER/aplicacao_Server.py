@@ -21,12 +21,9 @@ def main():
         rxBuffer, nRx = com1.getData(1)
         com1.rx.clearBuffer()
         time.sleep(.1)
-
         rxBuffer, nRx = com1.getData(2)
         rxBuffer_resposta = int.from_bytes(rxBuffer, "big")
-        
         com1.sendData(np.asarray(rxBuffer))
-       
         rxBuffer2, nRx2 = com1.getData(rxBuffer_resposta)
         rxLen = len(rxBuffer2)
 
