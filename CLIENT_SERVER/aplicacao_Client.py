@@ -24,6 +24,9 @@ def main():
         com1 = enlace('COM3')
         # Ativa comunicacao. Inicia os threads e a comunicação seiral 
         com1.enable()
+        time.sleep(.2)
+        com1.sendData(b'00')
+        time.sleep(1) 
         # lista de comandos existentes
         lista = [b'\xF0', b'\xFF', b'\x00\xFF', b'\xFF\x00', b'\x00', b'\x0F']
         # A sequência deve ter entre 10 e 30 comandos, a ser determinada pelo client (aleatoriamente)
