@@ -5,8 +5,7 @@
 #Aplicação
 ####################################################
 
-from distutils import command
-from email import message
+
 from enlace import *
 import time
 import numpy as np
@@ -22,11 +21,9 @@ em uma sequência também aleatória, desconhecida pelo server e elaborada aleat
 
 def main():
     try:
-        inicio_total = time.time()
         com1 = enlace('COM3')
         # Ativa comunicacao. Inicia os threads e a comunicação seiral 
         com1.enable()
-        com1.fisica.flush()
 
         lista = [b'\xF0', b'\xFF', b'\x00\xFF', b'\xFF\x00', b'\x00', b'\x0F']
         quant_comandos = random.randint(10,30)
@@ -42,32 +39,13 @@ def main():
         txLen = len(txBuffer)
         txBuffer_bytes = txLen.to_bytes(2, byteorder = 'big')
 
-        inicio_transmissao = time.time()
-        com1.sendData(np.asarray(txBuffer_bytes))
-        final_transmissao = time.time()
-        
-        inicio_recebimento = time.time()
-        rxBuffer, nRx = com1.getData(txLen)
-        final_recebimento = time.time()
+        com1.sendData(txBuffer_bytes)
+        rxBuffer, nRx = com1.getData(2)
 
         print("recebeu {}" .format(rxBuffer))
-        
-        # f = open(imageW, 'wb')
-        # f.write(rxBuffer) 
-        # f.close()
-    
-        final_total = time.time()
-        
-        variacao_final = final_total - inicio_total
-        variacao_transmissao = final_transmissao - inicio_transmissao
-        variacao_recebimento = final_recebimento - inicio_recebimento
-
         # Encerra comunicação
         print("-------------------------")
         print("Comunicação encerrada")
-        print(f'Tempo Total: {variacao_final}')
-        print(f'Tempo de Transmissão: {variacao_transmissao}')
-        print(f'Tempo de Recebimento: {variacao_recebimento}')
         print("-------------------------")
         com1.disable()
         
