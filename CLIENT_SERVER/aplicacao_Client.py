@@ -24,22 +24,24 @@ def main():
         com1 = enlace('COM3')
         # Ativa comunicacao. Inicia os threads e a comunicação seiral 
         com1.enable()
-
+        # lista de comandos existentes
         lista = [b'\xF0', b'\xFF', b'\x00\xFF', b'\xFF\x00', b'\x00', b'\x0F']
+        # A sequência deve ter entre 10 e 30 comandos, a ser determinada pelo client (aleatoriamente)
         quant_comandos = random.randint(10,30)
         lista_comandos = []
         for i in range(quant_comandos):
             indice_aleatorio_lista = random.randint(0,5)
             lista_comandos.append(lista[indice_aleatorio_lista])
-
+        # lista de msg com os items separados por byte xee'
         msg_txBuffer = []
         for i in lista_comandos:
             msg_txBuffer.append(i+b'\xee')
         txBuffer = (b''.join(msg_txBuffer))
         txLen = len(txBuffer)
         txBuffer_bytes = txLen.to_bytes(2, byteorder = 'big')
-
+        # Envia lista de bytes
         com1.sendData(txBuffer_bytes)
+        # recebe em binário
         rxBuffer, nRx = com1.getData(2)
 
         print("recebeu {}" .format(rxBuffer))
