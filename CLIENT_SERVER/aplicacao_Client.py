@@ -44,12 +44,39 @@ def main():
         # recebe em binário
         rxBuffer, nRx = com1.getData(2)
 
-        print("recebeu {}" .format(rxBuffer))
-        # Encerra comunicação
-        print("-------------------------")
-        print("Comunicação encerrada")
-        print("-------------------------")
+        if txBuffer_bytes == rxBuffer:
+            print('Comunicação iniciada!')
+            
+            com1.sendData((txBuffer)) 
+
+            rxBuffer, nRx = com1.getData(txLen)
+
+            if rxBuffer == txBuffer:
+                print('Informação Enviada é IGUAL a recebida!')
+            else:
+                print('Informação Enviada DIVERGENTE da recebida.')
+
+            n_comandos = len(lista_comandos).to_bytes(2, byteorder="big")
+            numberOfCommandsResponse, nRx = com1.getData(2)
+            lenNumberOfCommandsResponse = int.from_bytes(numberOfCommandsResponse, "big")
+            
+            print('\nNúmero de Comandos Enviados: {} comandos.\nNúmero de Comandos Recebidos: {} comandos.\n'.format(len(lista_comandos),lenNumberOfCommandsResponse))
+            
+            if n_comandos == numberOfCommandsResponse:
+                print('Número de comandos Enviados é IGUAL a recebida!')
+            else:
+                print('Número de comandos Enviados é DIVERGENTE da recebida.')
+
+                  
+        
+            print("-------------------------------")
+            print("Comunicação encerrada")
+            print("-------------------------------")
+        else:
+            print('Comunicação mal estabelecida!')
+
         com1.disable()
+
         
     except Exception as erro:
         print("ops! :-\\")
