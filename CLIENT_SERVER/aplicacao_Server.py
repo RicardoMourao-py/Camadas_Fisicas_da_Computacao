@@ -29,17 +29,30 @@ def main():
         com1.sendData(np.asarray(rxBuffer))
         # Dando acesso aos bytes recebidos em forma de array
         rxBuffer2, nRx2 = com1.getData(rxBuffer_array)
+        
+        
         rxLen = len(rxBuffer2)
         # Recebe a msg crua e splita ela com os separadores
         comandos = rxBuffer2.split(b'\xee')
+        
         # Deleta o ultimo valor que é irrelevante
         del comandos[-1]
         com1.sendData(rxBuffer2)
+
+        #caso de erro:
+        # byteerro = b'\x00\xff\xee\xf0\xee'
+        # com1.sendData(byteerro)
         # tempo para executar o envio
         time.sleep(0.05) 
         # Retorna uma matriz de bytes representando um inteiro.
+
+        #caso de sucesso:
         txBufferLen = len(comandos).to_bytes(2, byteorder="big")
         com1.sendData(txBufferLen)
+
+        #caso de erro
+        #com1.sendData(bytes([0,5]))
+
         # Encerra comunicação
         print("-------------------------")
         print("Comunicação encerrada")
