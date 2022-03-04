@@ -12,6 +12,7 @@ import time
 
 # Threads
 import threading
+from tracemalloc import stop
 
 # Class
 class RX(object):
@@ -68,8 +69,13 @@ class RX(object):
         return(b)
 
     def getNData(self, size):
+        inicio = time.time()
         while(self.getBufferLen() < size):
-            time.sleep(0.05)                 
+            print(f'Tempo percorrido: {10-(time.time() - inicio)}s')
+            if (10-(time.time() - inicio)) <= 0:
+                break
+            time.sleep(0.01) 
+       
         return(self.getBuffer(size))
 
 

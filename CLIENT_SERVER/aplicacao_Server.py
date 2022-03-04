@@ -35,14 +35,15 @@ def main():
         # Deleta o ultimo valor que é irrelevante
         del comandos[-1]
 
-
+        print(f'comandos: {comandos}')
         com1.sendData(rxBuffer2)
+        print(f'rxBuffer2: {rxBuffer2}')
         # tempo para executar o envio
         time.sleep(0.05) 
         # Retorna uma matriz de bytes representando um inteiro.
         txBufferLen = len(comandos).to_bytes(2, byteorder="big")
         com1.sendData(txBufferLen)
-
+        print(f'txBufferLen: {txBufferLen}')
         # Encerra comunicação
         print("-------------------------")
         print("Comunicação encerrada")

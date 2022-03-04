@@ -63,7 +63,7 @@ def main():
             n_comandos_recebidos, nRx = com1.getData(2)
             len_n_comandos_recebidos = int.from_bytes(n_comandos_recebidos, "big")
             print('Número de Comandos Enviados: {} comandos'.format(len(lista_comandos)))
-            print('Número de Comandos Recebidos: {} comandos'.format(len_n_comandos_recebidos))
+            print('Número de Comandos Recebidos: {} comandos'.format(len_n_comandos_recebidos)) 
             
             if n_comandos == n_comandos_recebidos:
                 print('Número de comandos Enviados = Número de comandos Recebidos')
