@@ -71,7 +71,7 @@ class RX(object):
     def getNData(self, size):
         inicio = time.time()
         while(self.getBufferLen() < size):
-            print(f'Tempo percorrido: {10-(time.time() - inicio)}s', end = ' \r')
+            print(f'Tempo percorrido: {10-(time.time() - inicio)}s')
             if (10-(time.time() - inicio)) <= 0:
                 break
             time.sleep(0.01) 
