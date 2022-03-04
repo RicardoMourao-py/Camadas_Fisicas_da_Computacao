@@ -12,7 +12,7 @@ import numpy as np
 import random 
 
 #   python -m serial.tools.list_ports
-serialName = "COM3" 
+serialName = "COM4" 
 '''             
 O client deve sortear um número N entre 10 e 30, que irá determinar a quantidades de comandos a serem
 enviados. Em seguida deve construir uma lista contendo os N comandos. Esta lista deve conter os comandos de 1 a 6
@@ -21,7 +21,7 @@ em uma sequência também aleatória, desconhecida pelo server e elaborada aleat
 
 def main():
     try:
-        com1 = enlace('COM3')
+        com1 = enlace('COM4')
         # Ativa comunicacao. Inicia os threads e a comunicação seiral 
         com1.enable()
         time.sleep(.2)
@@ -55,28 +55,27 @@ def main():
             rxBuffer, nRx = com1.getData(txLen)
 
             if rxBuffer == txBuffer:
-                print('Informação Enviada é IGUAL a recebida!')
+                print('Informação Enviada = Informação recebida!')
             else:
-                print('Informação Enviada DIVERGENTE da recebida.')
+                print('Informações enviadas e recebidas diferentes')
 
             n_comandos = len(lista_comandos).to_bytes(2, byteorder="big")
-            numberOfCommandsResponse, nRx = com1.getData(2)
-            lenNumberOfCommandsResponse = int.from_bytes(numberOfCommandsResponse, "big")
+            n_comandos_recebidos, nRx = com1.getData(2)
+            len_n_comandos_recebidos = int.from_bytes(n_comandos_recebidos, "big")
+            print('Número de Comandos Enviados: {} comandos'.format(len(lista_comandos)))
+            print('Número de Comandos Recebidos: {} comandos'.format(len_n_comandos_recebidos))
             
-            print('\nNúmero de Comandos Enviados: {} comandos.\nNúmero de Comandos Recebidos: {} comandos.\n'.format(len(lista_comandos),lenNumberOfCommandsResponse))
-            
-            if n_comandos == numberOfCommandsResponse:
-                print('Número de comandos Enviados é IGUAL a recebida!')
+            if n_comandos == n_comandos_recebidos:
+                print('Número de comandos Enviados = Número de comandos Recebidos')
             else:
-                print('Número de comandos Enviados é DIVERGENTE da recebida.')
+                print('Número de comandos Enviados != Número de comandos Recebidos')
 
-                  
-        
             print("-------------------------------")
             print("Comunicação encerrada")
             print("-------------------------------")
+            
         else:
-            print('Comunicação mal estabelecida!')
+            print('Sem comunicação!')
 
         com1.disable()
 
