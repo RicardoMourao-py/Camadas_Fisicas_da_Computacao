@@ -73,7 +73,7 @@ class Server:
 
 
     def integridadeArquivoBuffer(self,pacote):
-        header = self.bufferDecoding(pacote)
+        header = self.bufferDecodificado(pacote)
         if pacote[-4:]==self.eopEncoded and header[4]== self.pacoteAnalisado+1:
             # print('sequencial',header[4])
             self.pacoteAnalisado=header[4]
@@ -91,14 +91,14 @@ class Server:
             rxBufferHeader, nRxHeaderLen = self.serverCom.getData(128)
             integridadeArquivoBuffer=self.integridadeArquivoBuffer(rxBufferHeader)
 
-            responseBuffer = 0
+            respostaBuffer = 0
             if integridadeArquivoBuffer:                
                 respostaBuffer=self.mudaHeader(rxBufferHeader,0,4)
                 self.pacotes.append(rxBufferHeader)
             else:
-                responseBuffer=self.mudaHeader(rxBufferHeader,0,6)
+                respostaBuffer=self.mudaHeader(rxBufferHeader,0,6)
             # print('RECEBIDO:',rxBufferHeader, len(self.pacotes))
-            self.serverCom.sendData(responseBuffer)
+            self.serverCom.sendData(respostaBuffer)
             pbar.update(1)
         pbar.close()
 
@@ -111,15 +111,15 @@ class Server:
         print('\nIniciando decodificação do arquivo recebido...')
 
         def limpaPacote(package):
-            tamanhoPacote=self.bufferDecoding(package)[5]
+            tamanhoPacote=self.bufferDecodificado(package)[5]
             pacoteBuffer=package[10:-4][:tamanhoPacote]
             return pacoteBuffer
 
         arquivoBufferLimpo=[limpaPacote(i) for i in self.pacotes]
         buffer=bytes.join(b'',arquivoBufferLimpo)
-        recebe_file=open('img/{}.png'.format(self.idArquivo),'wb')
-        recebe_file.write(buffer)
-        recebe_file.close()
+        recebe_arquivo=open('img/{}.png'.format(self.idArquivo),'wb')
+        recebe_arquivo.write(buffer)
+        recebe_arquivo.close()
         print('Arquivo {}.png (Size: {} bytes) criado em "files".'
         .format(self.idArquivo,len(buffer)))
 
@@ -136,7 +136,7 @@ class Server:
         self.pacoteAnalisado = 0
         self.pacoteAtual = 0
         self.tamanhoPacoteAtual = 0
-        self.killProcess()
+        self.mataProcesso()
 
 
     def startServer(self):
@@ -146,22 +146,16 @@ class Server:
                 self.serverCom.enable()
                 self.serverCom.fisica.flush()
 
-                print("""
-                --------------------------------
-                ------Comunicação Iniciada------
-                --------- Porta: {} ----------
-                ------ Baud Rate: {} ------
-                --------------------------------
-                """.format(self.porta,self.baudRate))
+                print("Comunicação Iniciada na porta: {}".format(self.porta))
                 self.initialTime = time.time()
 
                 print('Servidor aberto.')
 
                 self.startCommunication()
 
-                self.fileDecoding()
+                self.decodificaArquivo()
 
-                self.closeConnection()
+                self.finalizaConexao()
             
         except Exception as erro:
             print("Ops! Erro no Server! :-\\\n",erro)
@@ -172,7 +166,7 @@ class Server:
             print('Server Finalizado na força!')
 
 
-    def killProcess(self):
+    def mataProcesso(self):
         print('Server Finalizado.')
         self.serverCom.fisica.flush()
         self.serverCom.disable()
