@@ -4,18 +4,18 @@ from tqdm import tqdm
 
 class Server:
 
-    def __init__(self, serialName= 'COM3',baudRate= 115200):
-       self.serverId = 12
-       self.clientId = 0
-       self.serialName = serialName
+    def __init__(self, porta= 'COM3',baudRate= 115200):
+       self.idServer = 12
+       self.idClient = 0
+       self.porta = porta
        self.baudRate = baudRate
        self.eopEncoded = b'\x02\x05\x00\x07'
        self.rxBuffer = self.rxBufferLen = 0
-       self.fileId = 0
-       self.numberOfPackages = 0
-       self.packages = []
+       self.idArquivo = 0
+       self.n_pacotes = 0
+       self.pacotes = []
 
-    def bufferDecoding(self, buffer):
+    def bufferDecodificado(self, buffer):
         '''
         h0 – tipo de mensagem
         h1 – id do cliente
@@ -39,109 +39,110 @@ class Server:
         h9 = buffer[9]
 
         if h0 == 1:
-            self.numberOfPackages = h3
-            self.fileId = h5
-            self.clientId = h1
-            self.packageAnalyzed = h4
-            self.currentPackage = h4
-            self.currentPackageSize = h5
+            self.n_pacotes = h3
+            self.idArquivo = h5
+            self.idClient = h1
+            self.pacoteAnalisado = h4
+            self.pacoteAtual = h4
+            self.tamanhoPacoteAtual = h5
         elif h0 == 2:
-            self.currentPackage = h4
-            self.currentPackageSize = h5
+            self.pacoteAtual = h4
+            self.tamanhoPacoteAtual = h5
         
         return [h0,h1,h2,h3,h4,h5,h6,h7,h8,h9]
 
-    def changeHeaderByte(self,header,position, value):
-        newValue = (value).to_bytes(1, byteorder='big')
-        newHeader = header[:position]+newValue+header[position+1:]
-        return newHeader
+    def mudaHeader(self,header,posicao, valor):
+        novo_valor = (valor).to_bytes(1, byteorder='big')
+        novoHeader = header[:posicao]+novo_valor+header[posicao+1:]
+        return novoHeader
 
 
-    def handshakePromise(self):
+    def handshakePrometido(self):
+
         print('Esperando Head Protocol...')
         rxBufferHeader, nRxHeaderLen = self.serverCom.getData(14)
         print('Tamanho do Head: {} bytes.'.format(nRxHeaderLen))
-        header = self.bufferDecoding(rxBufferHeader)
+        header = self.bufferDecodificado(rxBufferHeader)
         
-        if header[0]==1 and header[2]==self.serverId:
+        if header[0]==1 and header[2]==self.idServer:
             print('Head Protocol recebido! Client ID: {}.'
-            .format(self.clientId))
-            newHeader = self.changeHeaderByte(rxBufferHeader,0,2)
+            .format(self.idClient))
+            newHeader = self.mudaHeader(rxBufferHeader,0,2)
             print('Enviando Handshake...\n')
             self.serverCom.sendData(newHeader)
 
 
-    def fileBufferIntegrity(self,package):
-        header = self.bufferDecoding(package)
-        if package[-4:]==self.eopEncoded and header[4]== self.packageAnalyzed+1:
+    def integridadeArquivoBuffer(self,pacote):
+        header = self.bufferDecoding(pacote)
+        if pacote[-4:]==self.eopEncoded and header[4]== self.pacoteAnalisado+1:
             # print('sequencial',header[4])
-            self.packageAnalyzed=header[4]
+            self.pacoteAnalisado=header[4]
             return True
         else:
             return False
 
 
-    def receiveFileBuffer(self):
-        pbar = tqdm(total=self.numberOfPackages,unit='bytes',unit_scale=128,
+    def receberArquivoBuffer(self):
+        pbar = tqdm(total=self.n_pacotes,unit='bytes',unit_scale=128,
         desc='Bytes Recebidos')
-        while len(self.packages)<self.numberOfPackages:
-            # print(len(self.packages),self.numberOfPackages)
+        while len(self.pacotes)<self.n_pacotes:
+            # print(len(self.pacotes),self.n_pacotes)
             self.serverCom.fisica.flush()
             rxBufferHeader, nRxHeaderLen = self.serverCom.getData(128)
-            fileBufferIntegrity=self.fileBufferIntegrity(rxBufferHeader)
+            integridadeArquivoBuffer=self.integridadeArquivoBuffer(rxBufferHeader)
 
             responseBuffer = 0
-            if fileBufferIntegrity:                
-                responseBuffer=self.changeHeaderByte(rxBufferHeader,0,4)
-                self.packages.append(rxBufferHeader)
+            if integridadeArquivoBuffer:                
+                respostaBuffer=self.mudaHeader(rxBufferHeader,0,4)
+                self.pacotes.append(rxBufferHeader)
             else:
-                responseBuffer=self.changeHeaderByte(rxBufferHeader,0,6)
-            # print('RECEBIDO:',rxBufferHeader, len(self.packages))
+                responseBuffer=self.mudaHeader(rxBufferHeader,0,6)
+            # print('RECEBIDO:',rxBufferHeader, len(self.pacotes))
             self.serverCom.sendData(responseBuffer)
             pbar.update(1)
         pbar.close()
 
 
     def startCommunication(self):
-        self.handshakePromise()
-        self.receiveFileBuffer()
+        self.handshakePrometido()
+        self.receberArquivoBuffer()
 
-    def fileDecoding(self):
+    def decodificaArquivo(self):
         print('\nIniciando decodificação do arquivo recebido...')
 
-        def cleanPackage(package):
-            packageSize=self.bufferDecoding(package)[5]
-            packageBuffer=package[10:-4][:packageSize]
-            return packageBuffer
+        def limpaPacote(package):
+            tamanhoPacote=self.bufferDecoding(package)[5]
+            pacoteBuffer=package[10:-4][:tamanhoPacote]
+            return pacoteBuffer
 
-        cleanedFileBuffer=[cleanPackage(i) for i in self.packages]
-        buffer=bytes.join(b'',cleanedFileBuffer)
-        received_file=open('img/{}.png'.format(self.fileId),'wb')
-        received_file.write(buffer)
-        received_file.close()
+        arquivoBufferLimpo=[limpaPacote(i) for i in self.pacotes]
+        buffer=bytes.join(b'',arquivoBufferLimpo)
+        recebe_file=open('img/{}.png'.format(self.idArquivo),'wb')
+        recebe_file.write(buffer)
+        recebe_file.close()
         print('Arquivo {}.png (Size: {} bytes) criado em "files".'
-        .format(self.fileId,len(buffer)))
+        .format(self.idArquivo,len(buffer)))
 
 
-    def closeConnection(self):
+    def finalizaConexao(self):
         print('\nFechando conexão com o cliente...')
         time.sleep(0.05)
-        self.serverCom.sendData(self.packages[-1])
-        print('Conexão fechada com client de ID: {}.'.format(self.clientId))
+        self.serverCom.sendData(self.pacotes[-1])
+        print('Conexão fechada com client de ID: {}.'.format(self.idClient))
         self.rxBuffer = self.rxBufferLen = 0
-        self.fileId = 0
-        self.numberOfPackages = 0
-        self.packages = []
-        self.packageAnalyzed = 0
-        self.currentPackage = 0
-        self.currentPackageSize = 0
+        self.idArquivo = 0
+        self.n_pacotes = 0
+        self.pacotes = []
+        self.pacoteAnalisado = 0
+        self.pacoteAtual = 0
+        self.tamanhoPacoteAtual = 0
         self.killProcess()
 
 
     def startServer(self):
         try:
             while True:
-                self.serverCom = enlace(self.serialName,self.baudRate)
+                self.serverCom = enlace(self.porta,self.baudRate)
                 self.serverCom.enable()
                 self.serverCom.fisica.flush()
 
@@ -151,7 +152,7 @@ class Server:
                 --------- Porta: {} ----------
                 ------ Baud Rate: {} ------
                 --------------------------------
-                """.format(self.serialName,self.baudRate))
+                """.format(self.porta,self.baudRate))
                 self.initialTime = time.time()
 
                 print('Servidor aberto.')
@@ -178,8 +179,8 @@ class Server:
 
 
 def main():
-    serialName = input('Escolha a porta: (COM3, COM4,...): ')
-    server = Server(serialName)
+    porta = input('Escolha a porta: (COM3, COM4,...): ')
+    server = Server(porta)
     server.startServer()
 
 if __name__ == "__main__":
