@@ -88,11 +88,26 @@ class Server:
         while len(self.pacotes)<self.n_pacotes:
             # print(len(self.pacotes),self.n_pacotes)
             self.serverCom.fisica.flush()
+            # if len(self.pacotes)==self.n_pacotes-1:
+            #     print("ok")
+            #     header, nRxHeaderLen = self.serverCom.getData(10)
+            #     header1 = self.bufferDecodificado(rxBufferHeader)
+            #     print("sim\n")
+
+            #     rxBufferHeader, nRxHeaderLen = self.serverCom.getData(rxBufferHeader[5])
+            #     print(nRxHeaderLen)
+            #     respostaBuffer=self.mudaHeader(rxBufferHeader,0,4)
+            #     self.pacotes.append(header+rxBufferHeader+self.eopEncoded)
+            #     self.serverCom.sendData(respostaBuffer)
+
+                
+            #     pbar.update(1)
+
             rxBufferHeader, nRxHeaderLen = self.serverCom.getData(128)
             integridadeArquivoBuffer=self.integridadeArquivoBuffer(rxBufferHeader)
 
             respostaBuffer = 0
-            if integridadeArquivoBuffer:                
+            if integridadeArquivoBuffer:           
                 respostaBuffer=self.mudaHeader(rxBufferHeader,0,4)
                 self.pacotes.append(rxBufferHeader)
             else:
@@ -114,9 +129,10 @@ class Server:
             tamanhoPacote=self.bufferDecodificado(package)[5]
             pacoteBuffer=package[10:-4][:tamanhoPacote]
             return pacoteBuffer
-
+        
         arquivoBufferLimpo=[limpaPacote(i) for i in self.pacotes]
         buffer=bytes.join(b'',arquivoBufferLimpo)
+        print(buffer)
         recebe_arquivo=open('img/{}.png'.format(self.idArquivo),'wb')
         recebe_arquivo.write(buffer)
         recebe_arquivo.close()
@@ -132,7 +148,6 @@ class Server:
         self.rxBuffer = self.rxBufferLen = 0
         self.idArquivo = 0
         self.n_pacotes = 0
-        self.pacotes = []
         self.pacoteAnalisado = 0
         self.pacoteAtual = 0
         self.tamanhoPacoteAtual = 0
@@ -153,9 +168,9 @@ class Server:
 
                 self.startCommunication()
 
-                self.decodificaArquivo()
-
                 self.finalizaConexao()
+
+                self.decodificaArquivo()
             
         except Exception as erro:
             print("Ops! Erro no Server! :-\\\n",erro)

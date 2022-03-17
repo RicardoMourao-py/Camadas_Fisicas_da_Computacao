@@ -229,6 +229,7 @@ class Client:
 def main():        
     arquivo = os.listdir('img')
     client = Client(arquivo[0], 'COM4')
+    #client = Client("2.txt", 'COM4')
     client.iniciaClient()
     
 if __name__ == "__main__":
