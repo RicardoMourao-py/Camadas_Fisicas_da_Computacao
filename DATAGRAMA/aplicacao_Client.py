@@ -97,7 +97,6 @@ class Client:
             
             print('Aguardando Handshake...')
             rxBuffer, nRx = self.clientCom.getData(14,5)
-            print(rxBuffer)
             if not rxBuffer[0]:
                 tente_novamente = input("\n\nServidor inativo. Tentar novamente? s/n: ")
                 if tente_novamente == 's':
@@ -228,12 +227,8 @@ class Client:
             print('Client Finalizado na força!')
         
 def main():        
-    arquivos = os.listdir('img')
-    for i,value in enumerate(arquivos):
-        print('{} - {}'.format(i, value))
-    seleciona_arquivo = int(input('Qual Arquivo? '))
-    seleciona_porta = input('Qual a porta? ')
-    client = Client(arquivos[seleciona_arquivo], seleciona_porta)
+    arquivo = os.listdir('img')
+    client = Client(arquivo[0], 'COM4')
     client.iniciaClient()
     
 if __name__ == "__main__":

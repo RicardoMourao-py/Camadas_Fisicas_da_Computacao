@@ -173,8 +173,7 @@ class Server:
 
 
 def main():
-    porta = input('Escolha a porta: (COM3, COM4,...): ')
-    server = Server(porta)
+    server = Server('COM3')
     server.startServer()
 
 if __name__ == "__main__":
