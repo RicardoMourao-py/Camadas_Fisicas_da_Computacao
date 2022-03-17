@@ -1,3 +1,4 @@
+from email import header
 from enlace import *
 import time
 from tqdm import tqdm
@@ -81,6 +82,8 @@ class Server:
         else:
             return False
 
+    
+
 
     def receberArquivoBuffer(self):
         pbar = tqdm(total=self.n_pacotes,unit='bytes',unit_scale=128,
@@ -88,20 +91,6 @@ class Server:
         while len(self.pacotes)<self.n_pacotes:
             # print(len(self.pacotes),self.n_pacotes)
             self.serverCom.fisica.flush()
-            # if len(self.pacotes)==self.n_pacotes-1:
-            #     print("ok")
-            #     header, nRxHeaderLen = self.serverCom.getData(10)
-            #     header1 = self.bufferDecodificado(rxBufferHeader)
-            #     print("sim\n")
-
-            #     rxBufferHeader, nRxHeaderLen = self.serverCom.getData(rxBufferHeader[5])
-            #     print(nRxHeaderLen)
-            #     respostaBuffer=self.mudaHeader(rxBufferHeader,0,4)
-            #     self.pacotes.append(header+rxBufferHeader+self.eopEncoded)
-            #     self.serverCom.sendData(respostaBuffer)
-
-                
-            #     pbar.update(1)
 
             rxBufferHeader, nRxHeaderLen = self.serverCom.getData(128)
             integridadeArquivoBuffer=self.integridadeArquivoBuffer(rxBufferHeader)
@@ -111,7 +100,22 @@ class Server:
                 respostaBuffer=self.mudaHeader(rxBufferHeader,0,4)
                 self.pacotes.append(rxBufferHeader)
             else:
-                respostaBuffer=self.mudaHeader(rxBufferHeader,0,6)
+                if self.pacoteAnalisado+1==10:
+                    print(f"\nPacote recebido erroneamente: \n - esperado: {self.pacoteAnalisado+1} \n - recebido: {rxBufferHeader[4]}")
+                    respostaBuffer=self.mudaHeader(rxBufferHeader,0,6)
+                    print("Encerra conexao")
+                    pbar.close()
+                    self.serverCom.disable()
+                    break
+                else:
+                    print(f"\nErro do tamanho do payload Recebido\n")
+                    respostaBuffer=self.mudaHeader(rxBufferHeader,0,6)
+                    print("Encerra conexao")
+                    pbar.close()
+                    self.serverCom.disable()
+                    break
+
+
             # print('RECEBIDO:',rxBufferHeader, len(self.pacotes))
             self.serverCom.sendData(respostaBuffer)
             pbar.update(1)
@@ -132,7 +136,7 @@ class Server:
         
         arquivoBufferLimpo=[limpaPacote(i) for i in self.pacotes]
         buffer=bytes.join(b'',arquivoBufferLimpo)
-        print(buffer)
+        
         recebe_arquivo=open('img/{}.png'.format(self.idArquivo),'wb')
         recebe_arquivo.write(buffer)
         recebe_arquivo.close()

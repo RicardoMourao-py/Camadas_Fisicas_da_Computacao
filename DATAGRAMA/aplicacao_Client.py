@@ -31,6 +31,8 @@ class Client:
         self.txBuffer = self.txBufferLen = 0
         self.pacotes = []
         self.n_pacotes = 0
+        self.pacoteErro = False
+        self.payloadErro = False
     
     def header(self,tipoDeMensagem:int,numeroDoPacote:int,tamanhoPacote:int=1):
         '''
@@ -176,9 +178,24 @@ class Client:
                     self.mataProcesso()
 
             if handshake_verifica and pacote != self.pacotes[0]:
-                response = self.mandaPacote(pacote,i)
-                permanecePacote = response
-                pbar.update(1)
+                # força pacote 30 sser 25
+                if self.pacoteErro and i==10:
+                    response = self.mandaPacote(self.pacotes[25],i)
+                    permanecePacote = response
+                    pbar.update(1)
+                elif self.payloadErro and i==7:
+                    listaerrada = list(self.pacotes[25])
+                    listaerrada.append(0)
+                    listaerrada.append(12)
+                    listaerrada.append(16)
+                    self.clientCom.sendData(bytes(listaerrada))
+                    #response = self.mandaPacote(self.pacotes[25],i)
+                    permanecePacote = response
+                    pbar.update(1)
+                else:
+                    response = self.mandaPacote(pacote,i)
+                    permanecePacote = response
+                    pbar.update(1)
         pbar.close()
 
 
