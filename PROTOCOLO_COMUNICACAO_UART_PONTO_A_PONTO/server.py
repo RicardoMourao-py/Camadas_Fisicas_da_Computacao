@@ -3,11 +3,9 @@
 #Carareto
 ####################################################
 
-
 from enlace import *
 import time
 from datetime import datetime
-
 
 #   python -m serial.tools.list_ports
 
@@ -20,21 +18,21 @@ serialName = "COM4"
 
 def main():
     try:
-        # * INICIALIZANDO SERVER
+        # INICIANDO SERVER
         server = Server('COM4')
         server.serverCom = enlace(server.serialName)
         server.serverCom.enable()
 
-        # * HANDSHAKE
-        print("Esperando HandShake\n")
+        # INICIANDO HANDSHAKE
+        print("Aguardando HandShake\n")
         pacote, lenPacote = server.serverCom.getData(15)
         # cria log
         tempo = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        tipoMsg = pacote[0]
-        tamMsg = len(pacote)
-        pacoteEnviado = pacote[4]
-        totalPacotes = pacote[3]
-        server.logs += f"{tempo} / {'recebimento'} / {tipoMsg} / {tamMsg} / {pacoteEnviado} / {totalPacotes}\n"
+        tipodaMensagem = pacote[0]
+        tamanhoMensagem = len(pacote)
+        pacEnviado = pacote[4]
+        pacotesTotais = pacote[3]
+        server.logs += f"{tempo} / {'recebimento'} / {tipodaMensagem} / {tamanhoMensagem} / {pacEnviado} / {pacotesTotais}\n"
 
         pacote = list(pacote)
         pacote = list(map(int, pacote))
@@ -44,17 +42,17 @@ def main():
             i = (i).to_bytes(1, byteorder="big")
             respostaHandShake += i
         
-        print("Handshake recebido com sucesso! Enviando reposta de estabilidade.")
+        print("Handshake recebido com sucesso! Reposta de estabilidade enviada.")
         server.serverCom.sendData(respostaHandShake)
         time.sleep(.5)
 
-        # * RECEBIMENTO DOS PACOTES
-        # Variável para armazenar as informações recolhidas
+        # RECBER PACOTES
+        # guarda informações
         data = b''
         numPacote = 1
         saida = b''
         while True:
-            print(f"Recebendo informações do pacote {numPacote}")
+            print(f"Número do pacote {numPacote}")
             # Recebendo o head
             head, lenHead = server.serverCom.getDataServer(10)
             lenPayload = head[5]
@@ -64,11 +62,11 @@ def main():
             pacote = head + payload_EOP
             # cria log
             tempo = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            tipoMsg = pacote[0]
-            tamMsg = len(pacote)
-            pacoteEnviado = pacote[4]
-            totalPacotes = pacote[3]
-            server.logs += f"{tempo} / {'recebimento'} / {tipoMsg} / {tamMsg} / {pacoteEnviado} / {totalPacotes}\n"
+            tipodaMensagem = pacote[0]
+            tamanhoMensagem = len(pacote)
+            pacEnviado = pacote[4]
+            pacotesTotais = pacote[3]
+            server.logs += f"{tempo} / {'recebimento'} / {tipodaMensagem} / {tamanhoMensagem} / {pacEnviado} / {pacotesTotais}\n"
 
             head = pacote[0:10]
             h0, h1, h2, h3, h4, h5, h6, h7, h8, h9 = head[0], head[1], head[2], head[3], head[4], head[5], head[6], head[7], head[8], head[9]
@@ -92,9 +90,8 @@ def main():
                 if numPacote == h3 + 1:
                     data += payload_EOP[0:len(payload_EOP) - 4]
                     break
-                #return h4, h3
-
-            # Checando se o EOP está no local correto
+            
+            # verificando o local do EOP
             eop = pacote[len(pacote)-4:len(pacote)+1]
             if eop != 0x00000000.to_bytes(4, byteorder="big"):
                 print(f"O eop está no local errado! Por favor reenvie o pacote {numPacote}")
@@ -107,7 +104,7 @@ def main():
                     data += payload_EOP[0:len(payload_EOP) - 4]
                     break   
             
-            print("Está tudo certo com a mensagem! Vamos enviar uma mensagem de confirmação.")
+            print("Está tudo certo com a mensagem! Enviando uma mensagem confirmando")
             h0 = 4
             h7 = numPacote
             confirmacao = [h0, h1, h2, h3, h4, h5, h6, h7, h8, h9]
@@ -118,11 +115,11 @@ def main():
             data = respostaCorretaMsg + b'\x00' + 0x00000000.to_bytes(4, byteorder="big")
             server.serverCom.sendData(data)
             tempo = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            tipoMsg = data[0]
-            tamMsg = len(data)
-            pacoteEnviado = data[4]
-            totalPacotes = data[3]
-            server.logs += f"{tempo} / {'envio'} / {tipoMsg} / {tamMsg} / {pacoteEnviado} / {totalPacotes}\n"
+            tipodaMensagem = data[0]
+            tamanhoMensagem = len(data)
+            pacEnviado = data[4]
+            pacotesTotais = data[3]
+            server.logs += f"{tempo} / {'envio'} / {tipodaMensagem} / {tamanhoMensagem} / {pacEnviado} / {pacotesTotais}\n"
             time.sleep(.5)
             if numPacote == h4:
                 numPacote += 1 
@@ -140,7 +137,7 @@ def main():
 
         with open(f'logs/logServer.txt', 'w') as f:
             f.write(server.logs)
-        # * FECHANDO CLIENT
+        # FINALIZANDO CLIENT
         print("-------------------------")
         print("Comunicação encerrada")
         print("-------------------------")
@@ -156,7 +153,5 @@ def main():
         server.serverCom.disable()
         exit()
         
-
-    #so roda o main quando for executado do terminal ... se for chamado dentro de outro modulo nao roda
 if __name__ == "__main__":
     main()

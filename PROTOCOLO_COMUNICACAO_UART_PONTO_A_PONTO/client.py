@@ -3,7 +3,6 @@
 #Carareto
 ####################################################
 
-#from tracemalloc import stop
 from enlace import *
 import time
 import math
@@ -16,12 +15,7 @@ com1 = enlace('COM3')
 class Client:
 
     def __init__(self, file, serialName):
-        #self.clientCom = None
-        self.serialName = serialName
         self.head = 0
-        self.file = file
-        self.eop = 0x00000000.to_bytes(4, byteorder="big")
-        self.payloads = 0
         self.h0 = 0 # tipo de mensagem
         self.h1 = b'\x00' # livre
         self.h2 = b'\x00' # livre
@@ -32,6 +26,10 @@ class Client:
         self.h7 = 0 # último pacote recebido com sucesso.
         self.h8 = b'\x00' # CRC
         self.h9 = b'\x00' # CRC
+        self.payloads = 0
+        self.eop = 0x00000000.to_bytes(4, byteorder="big")
+        self.serialName = serialName
+        self.file = file
         self.logs = ''            
             
 serialName = "COM3"     
@@ -40,11 +38,11 @@ file = open(path, 'rb').read()
 
 def main():
     try:
-        # * INICIALIZANDO CLIENT
+        # INICIANDO CLIENT
         cliente = Client(file, 'COM3')
         cliente.clientCom = enlace(cliente.serialName)
         cliente.clientCom.enable()
-        # * HANDSHAKE
+        # INICIANDO HANDSHAKE
         print("Inicia HandShake\n")
         payload = b'\x00'
         # verifica o tipo da mensagem
@@ -52,7 +50,7 @@ def main():
         cliente.h0 = (tipo).to_bytes(1, byteorder="big")
         # Mensagem do tipo Handshake
         if tipo == 1:
-            cliente.h5 = b'\x00' # ? o que é o id do arquivo
+            cliente.h5 = b'\x00' 
         # Mensagem do tipo dados
         elif tipo == 3:
             cliente.h5 = len(cliente.payloads[int.from_bytes(cliente.h4,"big")-1])
@@ -69,17 +67,17 @@ def main():
             cliente.clientCom.sendData(pacote)
             # criando o log
             tempo = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            tipoMsg = pacote[0]
-            tamMsg = len(pacote)
-            pacoteEnviado = pacote[4]
-            totalPacotes = pacote[3]
-            cliente.logs += f"{tempo} / {'envio'} / {tipoMsg} / {tamMsg} / {pacoteEnviado} / {totalPacotes}\n"
+            tipodaMensagem = pacote[0]
+            tamanhoMensagem = len(pacote)
+            pacEnviado = pacote[4]
+            pacotesTotais = pacote[3]
+            cliente.logs += f"{tempo} / {'envio'} / {tipodaMensagem} / {tamanhoMensagem} / {pacEnviado} / {pacotesTotais}\n"
             time.sleep(.5)
             confirmacao = cliente.clientCom.getData(15)[0]
             timeF = time.time()
             if timeF - timeMax >= 25:
                 print(confirmacao)
-                print("Servidor não está respondendo. Cancelando comunicação.")
+                print("Servidor não responde. Cancelando protocolo.")
                 confirmacao = None
                 break
             elif type(confirmacao) == str:
@@ -94,9 +92,9 @@ def main():
             cliente.clientCom.disable()
             exit()
 
-        print("Handshake realizado com sucesso! Servidor está pronto para o recebimento da mensagem.\n")
-        # * ENVIO DOS PACOTES
-        print("Início do envio dos pacotes\n")
+        print("Handshake realizado com sucesso!\n")
+        # ENVIANDO PACOTES
+        print("Iniciando envio dos pacotes\n")
         # criando payloads
         cliente.payloads = []
         for i in range(0, len(cliente.file), 114):
@@ -119,7 +117,7 @@ def main():
             cliente.h0 = (tipo).to_bytes(1, byteorder="big")
             # Mensagem do tipo Handshake
             if tipo == 1:
-                cliente.h5 = b'\x00' # ? o que é o id do arquivo
+                cliente.h5 = b'\x00' 
             # Mensagem do tipo dados
             elif tipo == 3:
                 cliente.h5 = len(cliente.payloads[int.from_bytes(cliente.h4,"big")-1])
@@ -135,15 +133,15 @@ def main():
                 time.sleep(.5)
                 # criando o log
                 tempo = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                tipoMsg = pacote[0]
-                tamMsg = len(pacote)
-                pacoteEnviado = pacote[4]
-                totalPacotes = pacote[3]
-                cliente.logs += f"{tempo} / {'envio'} / {tipoMsg} / {tamMsg} / {pacoteEnviado} / {totalPacotes}\n"
+                tipodaMensagem = pacote[0]
+                tamanhoMensagem = len(pacote)
+                pacEnviado = pacote[4]
+                pacotesTotais = pacote[3]
+                cliente.logs += f"{tempo} / {'envio'} / {tipodaMensagem} / {tamanhoMensagem} / {pacEnviado} / {pacotesTotais}\n"
                 confirmacao = cliente.clientCom.getData(15)[0]
                 timeF = time.time()
                 if timeF - timeMax >= 25:
-                    print(f"Servidor não está respondendo. Cancelando comunicação.")
+                    print(f"Servidor não responde. Cancelando protocolo.")
                     confirmacao = None
                     break
                 elif type(confirmacao) == str:
@@ -162,13 +160,13 @@ def main():
             if confirmacao[0] == 4:
                 # criando log
                 tempo = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                tipoMsg = confirmacao[0]
-                tamMsg = len(confirmacao)
-                pacoteEnviado = confirmacao[4]
-                totalPacotes = confirmacao[3]
+                tipodaMensagem = confirmacao[0]
+                tamanhoMensagem = len(confirmacao)
+                pacEnviado = confirmacao[4]
+                pacotesTotais = confirmacao[3]
                 numPacoteCorreto = confirmacao[7]+1
-                cliente.logs += f"{tempo} / {'recebimento'} / {tipoMsg} / {tamMsg} / {pacoteEnviado} / {totalPacotes}\n"
-                print(confirmacao[7])
+                cliente.logs += f"{tempo} / {'recebimento'} / {tipodaMensagem} / {tamanhoMensagem} / {pacEnviado} / {pacotesTotais}\n"
+                print('-----------------------------------')
                 
                 # CASO DE ERRO
                 # numPacoteCorreto = None
@@ -177,13 +175,13 @@ def main():
             else:
                 # criando log
                 tempo = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                tipoMsg = confirmacao[0]
-                tamMsg = len(confirmacao)
-                pacoteEnviado = confirmacao[4]
-                totalPacotes = confirmacao[3]
-                cliente.logs += f"{tempo} / {'recebimento'} / {tipoMsg} / {tamMsg} / {pacoteEnviado} / {totalPacotes}\n"
+                tipodaMensagem = confirmacao[0]
+                tamanhoMensagem = len(confirmacao)
+                pacEnviado = confirmacao[4]
+                pacotesTotais = confirmacao[3]
+                cliente.logs += f"{tempo} / {'recebimento'} / {tipodaMensagem} / {tamanhoMensagem} / {pacEnviado} / {pacotesTotais}\n"
                 numPacoteCorreto = confirmacao[7]
-                print(f" Algo deu errado no envio, reenviar o pacote {numPacoteCorreto}")
+                print(f" Envio não verificado,por favor, reenvie o pacote {numPacoteCorreto}")
                 
             if numPacoteCorreto is None:
                 if h4 == 2:
@@ -200,7 +198,7 @@ def main():
         # escreve arquivo log
         with open(f'logs/logClient.txt', 'w') as f:
             f.write(cliente.logs)
-        # * FECHANDO CLIENT
+        # FINALIZANDO CLIENT
         print("-------------------------")
         print("Comunicação encerrada")
         print("-------------------------")
@@ -212,7 +210,5 @@ def main():
         print(erro)
         com1.disable()
         
-
-    #so roda o main quando for executado do terminal ... se for chamado dentro de outro modulo nao roda
 if __name__ == "__main__":
     main()
