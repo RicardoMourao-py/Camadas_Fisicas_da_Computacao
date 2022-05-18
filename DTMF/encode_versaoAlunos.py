@@ -38,15 +38,23 @@ def main():
 
     print("Inicializando encoder")
     print("Aguardando usuário")
+    fs = 44100
+    encode = signalMeu()
+    tecla = input("Digite um número de entre 0 e 9, ou A, B, C, D, X, #: ")
+    freq1, freq2 = encode.dict_teclas[str(tecla)][0], encode.dict_teclas[str(tecla)][1] 
+    senoide1, senoide2 = encode.generateSin(freq1, 1, 5, fs)[1], encode.generateSin(freq2, 1, 5, fs)[1]
+    sinal = senoide1+senoide2
     print("Gerando Tons base")
     print("Executando as senoides (emitindo o som)")
-    print("Gerando Tom referente ao símbolo : {}".format(NUM))
-    sd.play(tone, fs)
+    #print("Gerando Tom referente ao símbolo : {}".format(NUM))
+    sd.play(sinal, fs)
+    
+    
     # Exibe gráficos
-    plt.show()
+    #plt.show()
     # aguarda fim do audio
     sd.wait()
-    plotFFT(self, signal, fs)
+    #plotFFT(self, signal, fs)
     
 
 if __name__ == "__main__":

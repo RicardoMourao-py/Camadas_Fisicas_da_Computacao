@@ -3,6 +3,13 @@
 
 #Importe todas as bibliotecas
 
+from email.mime import audio
+from suaBibSignal import *
+import numpy as np
+import sounddevice as sd
+import matplotlib.pyplot as plt
+import time
+import peakutils
 
 #funcao para transformas intensidade acustica em dB
 def todB(s):
@@ -12,45 +19,47 @@ def todB(s):
 
 def main():
  
-    #declare um objeto da classe da sua biblioteca de apoio (cedida)    
+    #declare um objeto da classe da sua biblioteca de apoio (cedida)
+    decode = signalMeu()    
     #declare uma variavel com a frequencia de amostragem, sendo 44100
-    
+    fs = 44100
     #voce importou a bilioteca sounddevice como, por exemplo, sd. entao
     # os seguintes parametros devem ser setados:
     
-    sd.default.samplerate = #taxa de amostragem
+    sd.default.samplerate = fs
     sd.default.channels = 2  #voce pode ter que alterar isso dependendo da sua placa
-    duration = #tempo em segundos que ira aquisitar o sinal acustico captado pelo mic
+    duration = 3#tempo em segundos que ira aquisitar o sinal acustico captado pelo mic
 
 
     # faca um printo na tela dizendo que a captacao comecará em n segundos. e entao 
+    print('A captação começará em 5 segundos')
     #use um time.sleep para a espera
-   
-   #faca um print informando que a gravacao foi inicializada
-   
-   #declare uma variavel "duracao" com a duracao em segundos da gravacao. poucos segundos ... 
-   #calcule o numero de amostras "numAmostras" que serao feitas (numero de aquisicoes)
-   
-    audio = sd.rec(int(numAmostras), freqDeAmostragem, channels=1)
+    time.sleep(5)
+    #faca um print informando que a gravacao foi inicializada
+    print('começou')
+    #declare uma variavel "duracao" com a duracao em segundos da gravacao. poucos segundos ... 
+    #calcule o numero de amostras "numAmostras" que serao feitas (numero de aquisicoes)
+    numAmostras = duration*fs
+    audio = sd.rec(int(numAmostras), fs, channels=1)
     sd.wait()
     print("...     FIM")
     
     #analise sua variavel "audio". pode ser um vetor com 1 ou 2 colunas, lista ...
     #grave uma variavel com apenas a parte que interessa (dados)
-    
+    y = audio[:,0] # informações de onda
 
     # use a funcao linspace e crie o vetor tempo. Um instante correspondente a cada amostra!
-    t = np.linspace(inicio,fim,numPontos)
+    #t = np.linspace(inicio,fim,numPontos)
 
     # plot do gravico  áudio vs tempo!
    
     
     ## Calcula e exibe o Fourier do sinal audio. como saida tem-se a amplitude e as frequencias
-    xf, yf = signal.calcFFT(y, fs)
-    plt.figure("F(y)")
-    plt.plot(xf,yf)
-    plt.grid()
-    plt.title('Fourier audio')
+    xf, yf = decode.calcFFT(y, fs)
+    #plt.figure("F(y)")
+    #plt.plot(xf,yf)
+    #plt.grid()
+    #plt.title('Fourier audio')
     
 
     #esta funcao analisa o fourier e encontra os picos
@@ -58,7 +67,37 @@ def main():
     #voce deve tambem evitar que dois picos proximos sejam identificados, pois pequenas variacoes na
     #frequencia do sinal podem gerar mais de um pico, e na verdade tempos apenas 1.
    
-    index = peakutils.indexes(,,)
+
+    index = peakutils.indexes(np.abs(yf), thres=0.1, min_dist=20) # encontra os indices numericos dos picos
+
+
+    picos_teclas = np.unique(list(decode.dict_teclas.values())) # 6
+    
+    dic = {}
+    for freq in xf[index]:
+        distancias = []
+        for pico_tecla in picos_teclas:
+            delta = np.abs(freq - pico_tecla)
+            distancias.append(delta)
+
+        x = distancias.index(min(distancias))
+        dic[picos_teclas[x]] = min(distancias)
+
+    cont = 0
+    tom = []    
+    for i in sorted(dic, key = dic.get):
+        if cont == 2:
+            break
+        tom.append(i)
+        cont+=1
+
+    print(tom)
+    
+    
+    for i in decode.dict_teclas.keys():
+        if decode.dict_teclas[i] == (tom[0], tom[1]) or decode.dict_teclas[i] == (tom[1], tom[0]):
+            print(f'Sua tecla é: {i}')
+
     
     #printe os picos encontrados! 
     
@@ -67,7 +106,7 @@ def main():
     
   
     ## Exibe gráficos
-    plt.show()
+    #plt.show()
 
 if __name__ == "__main__":
     main()

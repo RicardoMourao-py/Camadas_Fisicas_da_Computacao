@@ -9,10 +9,9 @@ from scipy import signal as window
 
 class signalMeu:
     def __init__(self):
-        self.init = 0
-
-    def __init__(self):
-        self.init = 0
+        self.dict_teclas = {'0': (1339, 941),'1': (1206, 697),'2': (1339, 697),'3': (1477, 697),'4': (770, 1206),'5': (770, 1339),
+                            '6': (770, 1477),'7': (852, 1206),'8': (852, 1339),'9': (852, 1477),'A': (1633, 697),'B': (1633, 770),
+                            'C': (1633, 852),'D': (1633, 941),'X': (1206, 941),'#': (1477, 941)}
 
     def generateSin(self, freq, amplitude, time, fs):
         n = time*fs
