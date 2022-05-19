@@ -43,6 +43,7 @@ def main():
     tecla = input("Digite um número de entre 0 e 9, ou A, B, C, D, X, #: ")
     freq1, freq2 = encode.dict_teclas[str(tecla)][0], encode.dict_teclas[str(tecla)][1] 
     senoide1, senoide2 = encode.generateSin(freq1, 1, 5, fs)[1], encode.generateSin(freq2, 1, 5, fs)[1]
+    t1, t2 = encode.generateSin(freq1, 1, 5, fs)[0], encode.generateSin(freq2, 1, 5, fs)[0]
     sinal = senoide1+senoide2
     print("Gerando Tons base")
     print("Executando as senoides (emitindo o som)")
@@ -56,6 +57,16 @@ def main():
     sd.wait()
     #plotFFT(self, signal, fs)
     
-
+    # Exibe gráficos
+    plt.figure(figsize=(25,10))
+    plt.plot(t1, senoide1, label=f"Senoide 1")
+    plt.plot(t2, senoide2, label=f"Senoide 2")
+    plt.plot(t2, sinal, label="Soma das senoides")
+    plt.title(f"Tecla {tecla}")
+    plt.xlabel("Tempo (s)", fontsize = 18)
+    plt.ylabel("Função Senoidal", fontsize = 18)
+    plt.legend(loc='upper right', fontsize=18)
+    plt.axis([1, 1.01, -2, 2])
+    plt.show()
 if __name__ == "__main__":
     main()

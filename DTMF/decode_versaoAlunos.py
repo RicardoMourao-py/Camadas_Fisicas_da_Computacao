@@ -68,13 +68,14 @@ def main():
     #frequencia do sinal podem gerar mais de um pico, e na verdade tempos apenas 1.
    
 
-    index = peakutils.indexes(np.abs(yf), thres=0.1, min_dist=20) # encontra os indices numericos dos picos
+    index = peakutils.indexes(np.abs(yf), thres=0.1, min_dist=1) # encontra os indices numericos dos picos
 
 
     picos_teclas = np.unique(list(decode.dict_teclas.values())) # 6
     
     dic = {}
     for freq in xf[index]:
+        print(freq)
         distancias = []
         for pico_tecla in picos_teclas:
             delta = np.abs(freq - pico_tecla)
@@ -82,6 +83,8 @@ def main():
 
         x = distancias.index(min(distancias))
         dic[picos_teclas[x]] = min(distancias)
+
+
 
     cont = 0
     tom = []    
@@ -97,14 +100,32 @@ def main():
     for i in decode.dict_teclas.keys():
         if decode.dict_teclas[i] == (tom[0], tom[1]) or decode.dict_teclas[i] == (tom[1], tom[0]):
             print(f'Sua tecla é: {i}')
+            tecla = i
 
+    x = np.linspace(0.0, duration, numAmostras)
+    plt.figure(figsize=(25,10))
     
+    plt.plot(x, audio)
+    plt.title('Áudio Gravado')
+    plt.xlabel('Tempo')
+    plt.ylabel('Amplitude')
+    #plt.xlim(0,1500)
+    plt.show()
     #printe os picos encontrados! 
     
     #encontre na tabela duas frequencias proximas às frequencias de pico encontradas e descubra qual foi a tecla
     #print a tecla.
     
-  
+    
+    x,y = decode.calcFFT(audio[:,0], fs)
+    plt.figure(figsize=(25,10))
+    plt.plot(x, y)
+    plt.title(f'Tecla: {tecla}')
+    plt.xlabel('Frequencias')
+    plt.ylabel('Transformada')
+    #plt.xlim(0,1500)
+    #plt.axis([0, 1500, 0, 0.0001])
+    plt.show()
     ## Exibe gráficos
     #plt.show()
 
